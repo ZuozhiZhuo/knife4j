@@ -19,6 +19,9 @@
         <a-button type="default" @click="triggerDownloadOpenAPI">
           <a-icon type="file-text" /><span>OpenAPI</span>
         </a-button>
+        <a-button type="default" @click="triggerDownloadMACustomDD">
+          <a-icon type="file-text" /><span>MA Custom DD</span>
+        </a-button>
         <!-- <a-button type="default" @click="triggerDownloadPDF">
           <a-icon type="file-pdf" /><span v-html="$t('offline.download.pdf')">下载PDF</span></a-button
         > -->
@@ -41,6 +44,7 @@ import { resumecss } from "./OfficelineCss";
 import { getDocumentVueTemplates } from "@/components/officeDocument/officeDocTemplate";
 import { getDocumentVueTemplatesUS } from "@/components/officeDocument/officeDocTemplateUS";
 import markdownText from "@/components/officeDocument/markdownTransform";
+import maMarkdownText from "@/components/officeDocument/maMarkdownTransform";
 import wordText from "@/components/officeDocument/wordTransform";
 import wordTextUS from "@/components/officeDocument/wordTransformUS";
 import markdownTextUS from "@/components/officeDocument/markdownTransformUS";
@@ -107,6 +111,9 @@ export default {
     },
     swaggerCurrentInstance() {
       return this.$store.state.globals.swaggerCurrentInstance;
+    },
+    maCustomConfig() {
+      return this.$store.state.globals.maCustomConfig;
     }
   },
   methods: {
@@ -365,6 +372,70 @@ export default {
       a.download = fileName || "file";
       a.click();
       window.URL.revokeObjectURL(url);
+    },
+    triggerDownloadMACustomDD() {
+      // 下载markdown
+      var that = this;
+      // 正在下载Markdown文件中,请稍后...
+      var downloadMessage = this.getCurrentI18nInstance().message.offline.markdown;
+      that.$kloading.show({
+        text: downloadMessage
+      });
+      this.deepTags();
+      // 构建下载对象,从缓存中读取离线文档
+      // https://gitee.com/xiaoym/knife4j/issues/I2EDI8
+      var markdownKey = this.data.instance.id + 'markdownFiles';
+      this.$localStore.getItem(markdownKey).then(mdfileMap => {
+        // console.log(mdfileMap)
+        var markdownFiles = that.data.instance.markdownFiles;
+        if (KUtils.checkUndefined(mdfileMap)) {
+          if (KUtils.arrNotEmpty(markdownFiles)) {
+            markdownFiles.forEach(mdgrp => {
+              // 判断是否children
+              if (KUtils.arrNotEmpty(mdgrp.children)) {
+                mdgrp.children.forEach(mdfile => {
+                  var mdContent = mdfileMap[mdfile.id];
+                  if (KUtils.strNotBlank(mdContent)) {
+                    mdfile.content = mdContent;
+                  }
+                })
+              }
+            })
+          }
+        }
+        var instance = {
+          title: that.data.instance.title,
+          description: that.data.instance.title,
+          contact: that.data.instance.contact,
+          version: that.data.instance.version,
+          host: that.data.instance.host,
+          basePath: that.data.instance.basePath,
+          termsOfService: that.data.instance.termsOfService,
+          name: that.data.instance.name,
+          url: that.data.instance.url,
+          location: that.data.instance.location,
+          pathArrs: that.data.instance.pathArrs,
+          tags: that.tags,
+          markdownFiles: markdownFiles,
+
+        };
+        // console.info("下载markdown")
+        // console.log(instance)
+
+        // 遍历得到markdown语法
+        if (this.markdownText == null || this.markdownText == "") {
+          instance.maCustomConfig = this.maCustomConfig
+          // 遍历得到markdown文本
+          this.markdownText = maMarkdownText(instance)
+        }
+        // 等待ace-editor渲染,给与充足时间
+        setTimeout(() => {
+          // 下载html
+          that.downloadMarkdown(that.markdownText);
+          // 关闭
+          that.$kloading.destroy();
+        }, 1000);
+      })
     },
     triggerDownloadPDF() {
       // var message='该功能尚未实现...'

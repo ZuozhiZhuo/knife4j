@@ -19,12 +19,14 @@ module.exports = {
     }
   },
   devServer: {
-    watchOptions: {
-      ignored: /node_modules/
-    },
+    // watchOptions: {
+    //   ignored: /node_modules/
+    // },
+    hot: true,
+    open: true,
     proxy: {
       "/": {
-        target: 'http://localhost:8990/',
+        target: 'http://localhost:31893/',
         //target: 'http://localhost:17812',
         /* target: 'http://knife4j.xiaominfo.com/', */
         ws: true,
@@ -34,21 +36,21 @@ module.exports = {
   },
   configureWebpack: {
     optimization: {
-      minimizer: [
-        new TerserPlugin({
-          terserOptions: {
-            ecma: undefined,
-            warnings: false,
-            parse: {},
-            compress: {
-              drop_console: true,
-              drop_debugger: true,
-              pure_funcs: ['console.log', 'console.debug', 'window.console.log', 'window.console.debug'] // 移除console
-            }
-          },
-        }),
-
-      ]
+      // minimizer: [
+      //   new TerserPlugin({
+      //     terserOptions: {
+      //       ecma: undefined,
+      //       warnings: false,
+      //       parse: {},
+      //       compress: {
+      //         drop_console: true,
+      //         drop_debugger: true,
+      //         pure_funcs: ['console.log', 'console.debug', 'window.console.log', 'window.console.debug'] // 移除console
+      //       }
+      //     },
+      //   }),
+      //
+      // ]
     },
     plugins: [
       new CompressionWebpackPlugin({
@@ -61,5 +63,8 @@ module.exports = {
         { from: path.resolve(__dirname, 'public/oauth'), to: path.resolve(__dirname, 'dist/webjars/oauth') }
       ])
     ]
-  }
+  },
+  transpileDependencies: [
+    /\/node_modules\/(mermaid)/
+  ],
 };

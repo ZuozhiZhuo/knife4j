@@ -12,7 +12,16 @@ const globals = {
     currentMenuData: [],
     serviceOptions: [],
     settings: {},
-    defaultServiceOption: ''
+    defaultServiceOption: '',
+    // 从接口获取
+    maCustomConfig:{
+      openApi: {
+        example2default: true
+      },
+      maCustomDD: {
+        orderByApiName: true
+      }
+    }
   },
   mutations: {
     setMenuData: (state, menudatas) => {
@@ -50,6 +59,12 @@ const globals = {
     },
     setSettings: (state, settings) => {
       state.settings = settings;
+    },
+    setMaCustomConfig: (state, maCustomConfig) => {
+      state.maCustomConfig = maCustomConfig;
+    },
+    getMaCustomConfig: (state) => {
+      return state.maCustomConfig;
     }
   },
   actions: {
@@ -90,6 +105,12 @@ const globals = {
     },
     setDefaultService({ commit }, defaultOption) {
       commit('setDefaultService', defaultOption);
+    },
+    setMaCustomConfig({ commit }, maCustomConfig) {
+      commit('setMaCustomConfig', maCustomConfig);
+    },
+    getMaCustomConfig({ commit }) {
+      return commit('getMaCustomConfig');
     }
   }
 

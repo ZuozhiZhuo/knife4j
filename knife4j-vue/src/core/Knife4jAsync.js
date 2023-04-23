@@ -126,7 +126,7 @@ function SwaggerBootstrapUi(options) {
   this.menuData = null;
   this.store = options.store || {};
   this.localStore = options.localStore || {};
-  //  
+  //
   this.plus = options.plus;
   //  文档id
   this.docId = 'content';
@@ -165,7 +165,7 @@ function SwaggerBootstrapUi(options) {
     footerCustomContent: '',// 自定义footer内容
     enableSearch: true,// 是否显示搜索框
     enableOpenApi: true,// 是否显示OpenApi原始规范结构
-    enableHomeCustom: false,//  是否开启主页自定义配置，默认false 
+    enableHomeCustom: false,//  是否开启主页自定义配置，默认false
     homeCustomLocation: '',// 自定义主页的Markdown文档内容
     enableGroup: true,// 是否显示分组下拉框，默认true(即显示)，一般情况下，如果是单个分组的情况下，可以设置该属性为false，即不显示分组，那么也就不用选择了
 
@@ -900,9 +900,11 @@ SwaggerBootstrapUi.prototype.analysisApiSuccess = function (data) {
   that.currentInstance.load = true;
   // 创建swaggerbootstrapui主菜单
   that.createDetailMenu(true);
+
   // opentab
   // that.initOpenTable();
   // that.afterApiInitSuccess();
+  that.maCustomProcess(this.currentInstance)
   this.store.dispatch('globals/setSwaggerInstance', this.currentInstance);
 
 }
@@ -2904,7 +2906,7 @@ SwaggerBootstrapUi.prototype.readSecurityContextSchemesCommon = function (securi
                           }
                       }
                   }
-              } 
+              }
           }
           */
           //OAS3 oauth2认证
@@ -4106,7 +4108,7 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS2 = function (swpinfo) {
 
 /**
  * 解析对象，返回组装OpenAPI2规范对象，便于解析
- * @param {*} schema 
+ * @param {*} schema
  * @param {*} swagger2 是否Swagger2规范
  */
 SwaggerBootstrapUi.prototype.bodyParameterResolverSchema = function (schema, swagger2) {
@@ -4153,8 +4155,8 @@ SwaggerBootstrapUi.prototype.bodyParameterResolverSchema = function (schema, swa
 
 /**
  * 企业级插件属性支持 2023.3.15
- * @param {*} swpinfo 
- * @param {*} apiInfo 
+ * @param {*} swpinfo
+ * @param {*} apiInfo
  */
 SwaggerBootstrapUi.prototype.pluginSupportOrangeforms = function (swpinfo, apiInfo) {
   if (apiInfo.hasOwnProperty('x-orangeforms')) {
@@ -6303,6 +6305,105 @@ SwaggerBootstrapUi.prototype.getGlobalSecurityInfos = function () {
   }
   return params;
 }
+
+/***
+ * ma 对 实例对象进行特殊的处理
+ * @param menu
+ */
+SwaggerBootstrapUi.prototype.maCustomProcess = function (currentInstance) {
+  let maCustomConfig = {
+    openApi: {
+      example2default: true
+    },
+    maCustomDD: {
+      orderByApiName: true
+    }
+  }
+  // 从项目配置
+  //const paths = currentInstance.swaggerData.paths
+  // 对参数进行处理
+  //processParameters(paths,maCustomConfig)
+  processModels(currentInstance.swaggerData.definitions,maCustomConfig)
+}
+
+function processModels(definitions,maCustomConfig) {
+  if(maCustomConfig.openApi && maCustomConfig.openApi.example2default) {
+    for(let key in definitions){
+      const model = definitions[key]
+      if(model.properties) {
+        for(let p in model.properties){
+          let prop = model.properties[p]
+          if(prop.example) {
+            prop.default = prop.example
+          }
+        }
+      }
+    }
+  }
+
+}
+
+/*
+ 对参数进行排序，优先级是 参数类型 -> 是否必须 -> 参数名称
+ */
+function processParameters(paths,maCustomConfig) {
+  for(var key in paths){
+    const path = paths[key]
+    let content;
+    if(path['get']) {
+      content = path['get']
+    } else if(path['post']) {
+      content = path['post']
+    } else if(path['put']) {
+      content = path['put']
+    } else if(path['delete']) {
+      content = path['delete']
+    } else if(path['patch']) {
+      content = path['patch']
+    } else {
+      return
+    }
+    if(content.parameters) {
+      // 移除header 参数
+      if(maCustomConfig.hideHeaderParameter) {
+        let newParameters = content.parameters.filter( e => e.in != 'header')
+        content.parameters = newParameters
+      }
+      // 对参数进行趴下
+      if(maCustomConfig.orderParameter) {
+        // 基本排序优先级 in -> required -> name
+        content.parameters.sort((a,b) => {
+          if(a.in == b.in) {
+            if(a.required == b.required) {
+              if(a.name < b.name) {
+                return -1
+              } else {
+                return 1
+              }
+            } else {
+              if(a.required == true) {
+                return -1
+              } else {
+                return 1
+              }
+            }
+          } else {
+            if(a.in == 'header') {
+              return -1
+            } else if(a.in == 'body' && b.in != 'header') {
+              return -1
+            } else {
+              return 1
+            }
+          }
+        })
+      }
+    }
+  }
+}
+
+
+
 /***
  * 计数器
  * @constructor
