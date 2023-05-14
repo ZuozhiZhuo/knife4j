@@ -44,7 +44,7 @@ import { resumecss } from "./OfficelineCss";
 import { getDocumentVueTemplates } from "@/components/officeDocument/officeDocTemplate";
 import { getDocumentVueTemplatesUS } from "@/components/officeDocument/officeDocTemplateUS";
 import markdownText from "@/components/officeDocument/markdownTransform";
-import maMarkdownText from "@/components/officeDocument/maMarkdownTransform";
+import maHTMLText from "@/components/officeDocument/maDDHTMLTextTransform";
 import wordText from "@/components/officeDocument/wordTransform";
 import wordTextUS from "@/components/officeDocument/wordTransformUS";
 import markdownTextUS from "@/components/officeDocument/markdownTransformUS";
@@ -70,6 +70,7 @@ export default {
       tags: [],
       downloadType: "DownloadHtml",
       markdownText: "",
+      maDDHTMLText: "",
       expanRows: true,
       downloadHtmlFlag: false,
       downloadPDF: false,
@@ -374,6 +375,8 @@ export default {
       window.URL.revokeObjectURL(url);
     },
     triggerDownloadMACustomDD() {
+      var openApi = this.swaggerCurrentInstance.swaggerData;
+      debugger
       // 下载markdown
       var that = this;
       // 正在下载Markdown文件中,请稍后...
@@ -423,15 +426,15 @@ export default {
         // console.log(instance)
 
         // 遍历得到markdown语法
-        if (this.markdownText == null || this.markdownText == "") {
+        if (this.maDDHTMLText == null || this.maDDHTMLText == "") {
           instance.maCustomConfig = this.maCustomConfig
           // 遍历得到markdown文本
-          this.markdownText = maMarkdownText(instance)
+          this.maDDHTMLText = maHTMLText(instance)
         }
         // 等待ace-editor渲染,给与充足时间
         setTimeout(() => {
           // 下载html
-          that.downloadMarkdown(that.markdownText);
+          that.downloadMaDDHTMLText(that.maDDHTMLText);
           // 关闭
           that.$kloading.destroy();
         }, 1000);
@@ -610,6 +613,29 @@ export default {
       // var content = this.getHtmlContent(this.data.instance.title);
       var option = {};
       var fileName = this.data.instance.name + ".md";
+      var url = window.URL.createObjectURL(
+        new Blob([content], {
+          type:
+            (option.type || "text/plain") +
+            ";charset=" +
+            (option.encoding || "utf-8")
+        })
+      );
+      a.href = url;
+      a.download = fileName || "file";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    /**
+     * 下载ma dd html text
+     * @param content
+     */
+    downloadMaDDHTMLText(content) {
+      // console("downloadMarkdown");
+      var a = document.createElement("a");
+      // var content = this.getHtmlContent(this.data.instance.title);
+      var option = {};
+      var fileName = this.data.instance.name + ".txt";
       var url = window.URL.createObjectURL(
         new Blob([content], {
           type:

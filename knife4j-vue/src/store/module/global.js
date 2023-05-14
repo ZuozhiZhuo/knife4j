@@ -19,7 +19,27 @@ const globals = {
         example2default: true
       },
       maCustomDD: {
-        orderByApiName: true
+        enable: true,
+        orderByApiName: true,
+        hideHeaderParameter: false,
+        orderParameter: true,
+        defaultParameterComment: {
+          'data': '数据',
+          'errorCode': '错误码',
+          'respCode' : '响应状态码 0:正常，-1:错误',
+          'respMsg': '原因描述',
+          'traceId': 'traceId',
+          'query': '分页参数',
+          'limit': 'limit',
+          'offset': 'offset',
+          'pageIndex': '当前页',
+          'pageSize': '每页大小',
+          'totalCount': '总数据量',
+          'totalPage': '总页数'
+        },
+        extensions: {
+          mapiDocumentName: 'dssomobile-oneapp-bff-charging 接口文档'
+        }
       }
     }
   },
