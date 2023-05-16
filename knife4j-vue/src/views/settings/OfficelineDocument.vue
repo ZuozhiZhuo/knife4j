@@ -20,7 +20,7 @@
           <a-icon type="file-text" /><span>OpenAPI</span>
         </a-button>
         <a-button type="default" @click="triggerDownloadMACustomDD">
-          <a-icon type="file-text" /><span>MA Custom DD</span>
+          <a-icon type="file-text" /><span>Template</span>
         </a-button>
         <!-- <a-button type="default" @click="triggerDownloadPDF">
           <a-icon type="file-pdf" /><span v-html="$t('offline.download.pdf')">下载PDF</span></a-button
@@ -75,7 +75,8 @@ export default {
       downloadHtmlFlag: false,
       downloadPDF: false,
       modal: null,
-      page: false
+      page: false,
+      maCustomConfig: {}
     };
   },
   updated() {
@@ -97,6 +98,14 @@ export default {
   created() {
     this.initModels();
     // this.deepTags();
+    const customConfig = localStorage.getItem('maCustomConfig')
+    if(customConfig) {
+      this.maCustomConfig = JSON.parse(customConfig)
+      console.log(this.maCustomConfig)
+    }
+
+
+
   },
   watch: {
     language: function (val, oldval) {
@@ -112,9 +121,6 @@ export default {
     },
     swaggerCurrentInstance() {
       return this.$store.state.globals.swaggerCurrentInstance;
-    },
-    maCustomConfig() {
-      return this.$store.state.globals.maCustomConfig;
     }
   },
   methods: {
@@ -375,7 +381,6 @@ export default {
       window.URL.revokeObjectURL(url);
     },
     triggerDownloadMACustomDD() {
-      var openApi = this.swaggerCurrentInstance.swaggerData;
       // 下载markdown
       var that = this;
       // 正在下载Markdown文件中,请稍后...

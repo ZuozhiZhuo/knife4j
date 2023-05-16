@@ -18,29 +18,6 @@ const globals = {
       openApi: {
         example2default: true
       },
-      maCustomDD: {
-        enable: true,
-        orderByApiName: true,
-        hideHeaderParameter: false,
-        orderParameter: true,
-        defaultParameterComment: {
-          'data': '数据',
-          'errorCode': '错误码',
-          'respCode' : '响应状态码 0:正常，-1:错误',
-          'respMsg': '原因描述',
-          'traceId': 'traceId',
-          'query': '分页参数',
-          'limit': 'limit',
-          'offset': 'offset',
-          'pageIndex': '当前页',
-          'pageSize': '每页大小',
-          'totalCount': '总数据量',
-          'totalPage': '总页数'
-        },
-        extensions: {
-          mapiDocumentName: 'dssomobile-oneapp-bff-charging 接口文档'
-        }
-      }
     }
   },
   mutations: {
@@ -79,12 +56,6 @@ const globals = {
     },
     setSettings: (state, settings) => {
       state.settings = settings;
-    },
-    setMaCustomConfig: (state, maCustomConfig) => {
-      state.maCustomConfig = maCustomConfig;
-    },
-    getMaCustomConfig: (state) => {
-      return state.maCustomConfig;
     }
   },
   actions: {
@@ -125,12 +96,6 @@ const globals = {
     },
     setDefaultService({ commit }, defaultOption) {
       commit('setDefaultService', defaultOption);
-    },
-    setMaCustomConfig({ commit }, maCustomConfig) {
-      commit('setMaCustomConfig', maCustomConfig);
-    },
-    getMaCustomConfig({ commit }) {
-      return commit('getMaCustomConfig');
     }
   }
 

@@ -557,6 +557,11 @@ SwaggerBootstrapUi.prototype.analysisGroupSuccess = function (data) {
   var serviceOptions = [];
   var allGroupIds = [];
   groupData.forEach(function (group) {
+    if(group.maCustomConfig) {
+      localStorage.setItem('maCustomConfig',JSON.stringify(group.maCustomConfig))
+    } else {
+      localStorage.removeItem('maCustomConfig')
+    }
     var g = new SwaggerBootstrapUiInstance(
       KUtils.toString(group.name, '').replace(/\//g, '-'),
       group.location,
@@ -6311,14 +6316,7 @@ SwaggerBootstrapUi.prototype.getGlobalSecurityInfos = function () {
  * @param menu
  */
 SwaggerBootstrapUi.prototype.maCustomProcess = function (currentInstance) {
-  let maCustomConfig = {
-    openApi: {
-      example2default: true
-    },
-    maCustomDD: {
-      orderByApiName: true
-    }
-  }
+  let maCustomConfig = JSON.parse(localStorage.getItem('maCustomConfig'))
   // 从项目配置
   //const paths = currentInstance.swaggerData.paths
   // 对参数进行处理
@@ -6327,7 +6325,7 @@ SwaggerBootstrapUi.prototype.maCustomProcess = function (currentInstance) {
 }
 
 function processModels(definitions,maCustomConfig) {
-  if(maCustomConfig.openApi && maCustomConfig.openApi.example2default) {
+  if(maCustomConfig && maCustomConfig.openApi && maCustomConfig.openApi.example2default) {
     for(let key in definitions){
       const model = definitions[key]
       if(model.properties) {
