@@ -1,4 +1,4 @@
-import Mustache from 'mustache'
+import juicer from 'juicer';
 
 /**
  * 根据当前swagger分组实例得到当前组下markdown纯文本
@@ -7,7 +7,11 @@ import Mustache from 'mustache'
 export default function maHTMLText(instance) {
   var markdownCollections = [];
   if (instance != null && instance != undefined) {
-    createTemplateTagsInfo(instance,markdownCollections);
+    markdownCollections.push('\n\n\n')
+    // 创建 api 数据
+    markdownCollections.push(createTemplateTagsInfo(instance))
+    markdownCollections.push('\n\n\n')
+
   }
   return markdownCollections.join('\n');
 }
@@ -15,10 +19,10 @@ export default function maHTMLText(instance) {
 /**
  * 遍历tags分组信息
  * @param {*} instance  当前分组实例对象
- * @param {*} markdownCollections markdown文本集合对象
+ * @return 渲染后的HTML数据
  */
-function createTemplateTagsInfo(instance,markdownCollections) {
-  markdownCollections.push('\n\n\n')
+function createTemplateTagsInfo(instance) {
+
   const maCustomDDConfig = instance.maCustomConfig.maCustomDD
   if (instance.tags != undefined && instance.tags != null) {
     // flat map
@@ -72,14 +76,15 @@ function createTemplateTagsInfo(instance,markdownCollections) {
     const targetModelData = {
       'instance': instance,
       'apiInfo': apiInfoList,
-      'requestModel': reuqestModels,
       'maCustomDD': maCustomDDConfig
     }
-    const renderedHtml = Mustache.render(templateInnerHtml,targetModelData)
+    console.log('apiInfo[0]:')
+    console.log(apiInfoList[0])
+    const renderedHtml = juicer(templateInnerHtml,targetModelData)
     console.log('渲染的接口内容:')
     console.log(renderedHtml)
-    markdownCollections.push(renderedHtml)
-    markdownCollections.push('\n\n\n')
+    // return
+    return renderedHtml
   }
 }
 
@@ -152,19 +157,48 @@ function processParameters(parameters,maCustomConfig) {
   }
   return parameters
 }
+// https://github.com/PaulGuo/Juicer
 
 var templateInnerHtml = `
-{{#apiInfo}}
-<h3> [Index] {{summary}}</h3>
+ <h3> 请求数据模型</h3>
+{@each apiInfo as item}
+<h3> TODO \$\${item.url}</h3>
+<ac:structured-macro ac:macro-id="\$\${item.id}" ac:name="code" ac:schema-version="1">
+  <ac:plain-text-body><![CDATA[\$\${item.requestValue}]]></ac:plain-text-body>
+</ac:structured-macro>
+<br/>
+{@/each}
+
+
+<h3> 响应数据模型</h3>
+{@each apiInfo as item}
+  <h3> TODO \$\${item.multipData.schema}</h3>
+  <ac:structured-macro ac:macro-id="\$\${item.id}" ac:name="code" ac:schema-version="1">
+    <ac:plain-text-body><![CDATA[\$\${item.multipData.responseValue}]]></ac:plain-text-body>
+  </ac:structured-macro>
+  <br/>
+
+{@/each}
+
+
+-------------------------------------
+
+
+
+
+
+
+{@each apiInfo as item}
+<h3> [Index] \$\${item.summary}</h3>
 <ul>
   <li>功能说明</li>
 </ul>
-{{{description}}}
+\$\${item.description}
 <ul>
   <li>函数原型</li>
 </ul>
 <ac:structured-macro ac:macro-id="b4913a61-9e0f-4242-9d9f-8bd4616ed617" ac:name="code" ac:schema-version="1">
-  <ac:plain-text-body><![CDATA[[Prototype]]]></ac:plain-text-body>
+  <ac:plain-text-body><![CDATA[[TODO Prototype]]]></ac:plain-text-body>
 </ac:structured-macro>
 <ul>
   <li class="auto-cursor-target">请求参数</li>
@@ -187,7 +221,7 @@ var templateInnerHtml = `
           </span>
         </strong>
       </td>
-      <td colspan="5">{{showUrl}}</td>
+      <td colspan="5">\$\${item.showUrl}</td>
     </tr>
     <tr>
       <td class="highlight-#deebff" data-highlight-colour="#deebff">
@@ -199,7 +233,7 @@ var templateInnerHtml = `
       </td>
       <td colspan="5">
         <span class="md-pair-s md-expand">
-          <code style="text-align: left;">{{methodType}}</code>
+          <code style="text-align: left;">\$\${item.methodType}</code>
         </span>
       </td>
     </tr>
@@ -258,17 +292,21 @@ var templateInnerHtml = `
   </thead>
   <tbody>
     <tr>
-      <td class="highlight-#deebff" data-highlight-colour="#deebff" rowspan="{{reqParametersLength}}"></td>
+      <td class="highlight-#deebff" data-highlight-colour="#deebff" rowspan="\$\${item.reqParametersLength}"></td>
     </tr>
-    {{#flatReqParameters}}
+    {@each item.flatReqParameters as reqParameters}
     <tr>
-      <td>{{{deepName}}}</td>
-      <td>{{description}}</td>
-      <td>{{in}}</td>
-      <td>{{require}}</td>
-      <td>{{type}}</td>
+      <td>\$\${reqParameters.deepName}</td>
+      <td>\$\${reqParameters.description}</td>
+      {@if reqParameters.in}
+        <td>\$\${reqParameters.in}</td>
+      {@else}
+        <td>N/A</td>
+      {@/if}
+      <td>\$\${reqParameters.require}</td>
+      <td>\$\${reqParameters.type}</td>
     </tr>
-    {{/flatReqParameters}}
+    {@/each}
   </tbody>
 </table>
 <p class="auto-cursor-target">
@@ -303,21 +341,21 @@ var templateInnerHtml = `
     </tr>
   </thead>
   <tbody>
-  {{#multipData.flatData}}
+  {@each item.multipData.flatData as responseParameter}
     <tr>
       <td>
         <span class="td-span md-focus">
-          <span class="md-plain md-expand">{{{deepName}}}</span>
+          <span class="md-plain md-expand">\$\${responseParameter.deepName}</span>
         </span>
       </td>
-      <td>{{description}}</td>
+      <td>\$\${responseParameter.description}</td>
       <td>
         <span class="td-span">
-          <span class="md-plain">{{type}}</span>
+          <span class="md-plain">\$\${responseParameter.type}</span>
         </span>
       </td>
     </tr>
-   {{/multipData.flatData}}
+   {@/each}
   </tbody>
 </table>
 <ul>
@@ -374,10 +412,10 @@ var templateInnerHtml = `
   <li class="auto-cursor-target">处理流程</li>
 </ul>
 <p>
-  [WorkFlow]
+  TODO [WorkFlow]
 </p>
 <p>
-  <span>接口文档参考：{{maCustomDD.extensions.mapiDocumentName}}</span>
+  <span>接口文档参考：\$\${maCustomDD.extensions.mapiDocumentName}</span>
 </p>
-{{/apiInfo}}
+{@/each}
 `

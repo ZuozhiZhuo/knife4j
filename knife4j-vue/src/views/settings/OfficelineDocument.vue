@@ -376,7 +376,6 @@ export default {
     },
     triggerDownloadMACustomDD() {
       var openApi = this.swaggerCurrentInstance.swaggerData;
-      debugger
       // 下载markdown
       var that = this;
       // 正在下载Markdown文件中,请稍后...
